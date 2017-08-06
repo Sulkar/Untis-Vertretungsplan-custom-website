@@ -1,0 +1,19 @@
+{
+    "remotePath": "./",
+    "host": "ftp.strato.com",
+    "username": "ftp_vertretungsplan@mittelschule-unterschleissheim.de",
+    "password": "vertretungsplan125",
+    "port": 21,
+    "secure": false,
+    "protocol": "ftp",
+    "uploadOnSave": true,
+    "passive": false,
+    "debug": false,
+    "privateKeyPath": null,
+    "passphrase": null,
+    "ignore": [
+        "\\.vscode",
+        "\\.git",
+        "\\.DS_Store"
+    ]
+}
