@@ -1,115 +1,52 @@
+/*
+* Code for displaying substitution schedule on a website. Data exported from Untis and loaded in this website
+*/
+
 $(document).ready(function () {
 
     //variables
-    var VertretungHeute = [];
-    VertretungHeute[0] = "subst_001";
-    VertretungHeute[1] = "subst_002";
     var VertretungHeuteData = [];
-
-    var VertretungMorgen = [];
-    VertretungMorgen[0] = "subst_001";
-    VertretungMorgen[1] = "subst_002";
     var VertretungMorgenData = [];
 
-    var tempPlanLeft = 0; //position in array
+    var tempPlanLeft = 0; //current view position
     var tempPlanRight = 0;
+
+    var viewCounter = 5; //change this var: time * 2 seconds for auto view-change
+    $("#countdown").html(viewCounter);
+    var tempCounter = 5;
 
     // load html in Array
     function loadVertretungsplanHTML() {
-        for (i = 0; i <= VertretungHeute.length; i++) {
-            VertretungHeuteData[i] = $('<div>');
-            VertretungHeuteData[i].load("/data/Lehrer_heute/end_pretty.html  #" + VertretungHeute[i]);
-        }
+        //load left HTML and put each day into the array
+        $.get("/data/Lehrer_heute/end_pretty.html?nocache=" + new Date().getTime(), function(dataLeft) {
+            var tempDataLeft = $('<output>').append($.parseHTML(dataLeft)).find('#tempDay');
+            // put every tempDay div into the array
+            for (var i = 0; i < tempDataLeft.length; i++) {
+                VertretungHeuteData.push(tempDataLeft[i]);
+            }
+            $("#content").html(VertretungHeuteData[0]);
+        }, 'text');
+        //load right HTML and put each day into the array
+        $.get("/data/Lehrer_heute/end_pretty.html?nocache=" + new Date().getTime(), function(dataRight) {
+            var tempDataRight = $('<output>').append($.parseHTML(dataRight)).find('#tempDay');
+            // put every tempDay div into the array
+            for (var j = 0; j < tempDataRight.length; j++) {
+                VertretungMorgenData.push(tempDataRight[j]);
+            }
+            $("#content2").html(VertretungMorgenData[0]);
+        }, 'text');
+
     }
     loadVertretungsplanHTML();
-
-    $("#content").html(VertretungHeuteData[0]);
-    $("#content2").load("/data/Lehrer_heute/end_pretty.html?nocache=" + (new Date()).getTime());
-
-
 
     //
     // Functions
     //
 
-    var scrollDownLeft = true;
-    var scrollDownRight = true;
-    var tempHeightLeft = -1;
-    var tempHeightRight = -1;
-    var tempTimeout = 50;
-    var tempJumps = 1;
-
-    //Function: ScrollDiv
-    function scrollDivLeft() {
-        var element = document.getElementById("wrapper");
-
-        //toggle scrollDown true - false
-        if (element.scrollTop == tempHeightLeft) {
-            scrollDownLeft = !scrollDownLeft;
-        } 
-        
-        //scrolling
-        if (scrollDownLeft) {
-            setTimeout(function () {
-                tempHeightLeft = element.scrollTop;
-                element.scrollTop += tempJumps;
-                scrollDivLeft();
-            }, tempTimeout);
-        } else {
-            setTimeout(function () {
-                tempHeightLeft = element.scrollTop;
-                element.scrollTop -= tempJumps;
-                scrollDivLeft();
-            }, tempTimeout);
-        }
-    }
-    function scrollDivRight() {
-        var element = document.getElementById("wrapper2");
-
-        //toggle scrollDown true - false
-        if (element.scrollTop == tempHeightRight) {
-            scrollDownRight = !scrollDownRight;
-        } 
-        
-        //scrolling
-        if (scrollDownRight) {
-            setTimeout(function () {
-                tempHeightRight = element.scrollTop;
-                element.scrollTop += tempJumps;
-                scrollDivRight();
-            }, tempTimeout);
-        } else {
-            setTimeout(function () {
-                tempHeightRight = element.scrollTop;
-                element.scrollTop -= tempJumps;
-                scrollDivRight();
-            }, tempTimeout);
-        }
-    }
-
-
-
-
-    //Function: PageScroll 1
-    function PageScroll1() {
-        var elmnt = document.getElementById("wrapper");
-        elmnt.scrollTop += 10;
-        scrolldelay = setTimeout(PageScroll1, 100);
-    }
-
-    //Function: PageScroll 2
-    var scrolled;
-    function PageScroll2() {
-        scrolled = scrolled + 300;
-        $("#wrapper").animate({
-            scrollTop: scrolled
-        });
-    }
-
-    //Function: load HTML
+    //Function: load HTML in content or content2 from array
     function loadHTML(direction) {
         if (direction == "right1") {
-            if (tempPlanLeft < VertretungHeute.length - 1) {
+            if (tempPlanLeft < VertretungHeuteData.length - 1) {
                 tempPlanLeft++;
             } else {
                 tempPlanLeft = 0;
@@ -120,88 +57,76 @@ $(document).ready(function () {
             if (tempPlanLeft > 0) {
                 tempPlanLeft--;
             } else {
-                tempPlanLeft = VertretungHeute.length - 1;
+                tempPlanLeft = VertretungHeuteData.length - 1;
             }
             $("#content").html(VertretungHeuteData[tempPlanLeft]);
+        ///////////////////////////////////////////////////////////
         } else if (direction == "right2") {
-
+            if (tempPlanRight < VertretungMorgenData.length - 1) {
+                tempPlanRight++;
+            } else {
+                tempPlanRight = 0;
+            }
+            $("#content2").html(VertretungMorgenData[tempPlanRight]);
         } else {
-
+            if (tempPlanRight > 0) {
+                tempPlanRight--;
+            } else {
+                tempPlanRight = VertretungMorgenData.length - 1;
+            }
+            $("#content2").html(VertretungMorgenData[tempPlanRight]);
         }
     }
+
+
+    //Function: countdown to next view (called every 2 seconds)
+    var x = setInterval(function() {
+        tempCounter--;
+        //if counter <0 load new substitution view
+        if(tempCounter < 0){
+            tempCounter = viewCounter;
+            loadHTML("right1");
+            loadHTML("right2");
+        }
+        $("#countdown").html(tempCounter);
+    }, 2000);
+
 
     //
     // Buttons
     //
-    //Btn: Navigation
+    //Btn: test
     $("#btn_right1").click(function () {
-        $("#content").animate({
-            left: '-50%'
-        }, 500, function () {
-            $(this).css('left', '150%');
-            $(this).appendTo('#wrapper');
-        });
-        loadHTML("right1");
+
     });
     $("#btn_left1").click(function () {
-        //loadHTML("left1");
-        scrollDivLeft();
-        scrollDivRight();
+
     });
     $("#btn_right2").click(function () {
-        $('#wrapper2').animate({
-            scrollTop: $("#subst_002").offset().top
-        }, 2000);
+
     });
     $("#btn_left2").click(function () {
-        $('#wrapper2').animate({
-            scrollTop: $("#subst_001").offset().top
-        }, 2000);
+
+    });
+
+    //
+    // get Keypresses -> and change substitution view
+    $(document).keydown(function(e) {
+        if(e.which == 37) { //left
+            loadHTML("left1");
+            tempCounter = viewCounter; //reset countdown
+        }else if (e.which == 39) { //right
+            loadHTML("right1");
+            tempCounter = viewCounter;
+        }else if (e.which == 38) { //up
+            loadHTML("right2");
+            tempCounter = viewCounter;
+        }else if (e.which == 40) { //down
+            loadHTML("left2");
+            tempCounter = viewCounter;
+        }
+        $("#countdown").html(tempCounter);
     });
 
 
-
-
-    /*
-        //Function: right Wrapper scroll
-        function ScrollRight() {
-            var divHeight = $('#content2').height();
-            console.log(divHeight);
-            nachUnten();
-        }
-        function nachUnten() {
-            $('#content2').scrollTop += 100;
-        }
-    
-        //Function: left Wrapper scroll
-        function animateContent(direction) {
-            var animationOffset = $('#wrapper').height() - $('#content').height() - 30;
-            var animationSpeed = $('#content').height() * 10;
-            if (direction == 'up') {
-                animationOffset = 0;
-            }
-    
-            console.log("animationOffset:" + animationOffset);
-            $('#content').animate({ "marginTop": (animationOffset) + "px" }, animationSpeed);
-        }
-    
-        function up() {
-            animateContent("up")
-        }
-        function down() {
-            animateContent("down")
-        }
-    
-        function start() {
-            setTimeout(function () {
-                down();
-            }, 2000);
-            setTimeout(function () {
-                up();
-            }, 2000);
-            setTimeout(function () {
-                console.log("wait...");
-            }, 5000);
-        }
-    */
 });
