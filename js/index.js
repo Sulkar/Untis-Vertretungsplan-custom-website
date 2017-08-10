@@ -3,9 +3,12 @@
 */
 
 $(document).ready(function () {
-
+	
     //variables
-    var VertretungHeuteData = [];
+    var tempPlanHeute = "/data/Lehrer_heute/LehrerAllHeute.html";
+	var tempPlanMorgen = "/data/Lehrer_morgen/LehrerAllMorgen.html";
+	
+	var VertretungHeuteData = [];
     var VertretungMorgenData = [];
 
     var tempPlanLeft = 0; //current view position
@@ -18,7 +21,7 @@ $(document).ready(function () {
     // load html in Array
     function loadVertretungsplanHTML() {
         //load left HTML and put each day into the array
-        $.get("/data/Lehrer_heute/end_pretty.html?nocache=" + new Date().getTime(), function(dataLeft) {
+        $.get(tempPlanHeute + "?nocache=" + new Date().getTime(), function(dataLeft) {
             var tempDataLeft = $('<output>').append($.parseHTML(dataLeft)).find('#tempDay');
             // put every tempDay div into the array
             for (var i = 0; i < tempDataLeft.length; i++) {
@@ -27,7 +30,7 @@ $(document).ready(function () {
             $("#content").html(VertretungHeuteData[0]);
         }, 'text');
         //load right HTML and put each day into the array
-        $.get("/data/Lehrer_heute/end_pretty.html?nocache=" + new Date().getTime(), function(dataRight) {
+        $.get(tempPlanMorgen + "?nocache=" + new Date().getTime(), function(dataRight) {
             var tempDataRight = $('<output>').append($.parseHTML(dataRight)).find('#tempDay');
             // put every tempDay div into the array
             for (var j = 0; j < tempDataRight.length; j++) {
